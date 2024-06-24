@@ -12,20 +12,25 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
-    
+    public Text BestScoreText; // Texte pour afficher le meilleur score
+
     private bool m_Started = false;
     private int m_Points;
-    
     private bool m_GameOver = false;
+    private string playerName; // Variable pour stocker le nom du joueur actuel
 
-    
-    // Start is called before the first frame update
     void Start()
     {
+        // Récupérer le nom du joueur depuis GameManager1
+        if (GameManager1.Instance != null)
+        {
+            playerName = GameManager1.Instance.playerName;
+        }
+
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -35,6 +40,12 @@ public class MainManager : MonoBehaviour
                 brick.PointValue = pointCountArray[i];
                 brick.onDestroyed.AddListener(AddPoint);
             }
+        }
+
+        // Afficher le meilleur score actuel au démarrage
+        if (GameManager1.Instance != null)
+        {
+            BestScoreText.text = $"Best Score: {GameManager1.Instance.bestScore} by {GameManager1.Instance.bestPlayerName}";
         }
     }
 
@@ -57,7 +68,7 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                SceneManager.LoadScene("MenuScene"); // Retourner au menu principal
             }
         }
     }
@@ -65,12 +76,22 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        // Afficher le nom du joueur actuel et le score
+        ScoreText.text = $"Name: {playerName} Score: {m_Points}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        // Vérifier et sauvegarder le meilleur score
+        if (GameManager1.Instance != null)
+        {
+            GameManager1.Instance.UpdateBestScore(m_Points); // Mettre à jour et sauvegarder le meilleur score
+
+            // Mettre à jour l'affichage du meilleur score avec le nom du joueur ayant le meilleur score
+            BestScoreText.text = $"Best Score: {GameManager1.Instance.bestScore} by {GameManager1.Instance.bestPlayerName}";
+        }
     }
 }
